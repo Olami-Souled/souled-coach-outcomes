@@ -115,6 +115,13 @@ html = """<!DOCTYPE html>
         <input type="number" id="minTotalMeetingsNum" min="1" max="200" value="1" title="Type a custom value">
       </div>
     </div>
+    <div class="control-group" style="justify-content:flex-end;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;font-weight:600;color:#555;">
+        <input type="checkbox" id="confirmedOnly" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;">
+        Manager-confirmed outcomes only
+      </label>
+      <div style="font-size:0.75rem;color:#999;margin-top:2px;">Only count SO/STAM students confirmed by a manager</div>
+    </div>
   </div>
 
   <div class="summary">
@@ -153,7 +160,7 @@ const DATA = __DATA_PLACEHOLDER__;
 let sortCol = 'rate', sortDir = -1;
 let expandedCoach = null;
 
-function compute(minMeetings, minSemMonths, minTotalMeetings, rateMetric) {
+function compute(minMeetings, minSemMonths, minTotalMeetings, rateMetric, confirmedOnly) {
   // First, compute total meetings per student across all coaches
   var studentTotalMeetings = {};
   DATA.rels.forEach(function(r) {
@@ -188,8 +195,8 @@ function compute(minMeetings, minSemMonths, minTotalMeetings, rateMetric) {
 
     studentIds.forEach(function(sid) {
       var s = DATA.students[sid];
-      var isSO = s ? s.so : false;
-      var isSTAM = s ? s.st : false;
+      var isSO = s ? (confirmedOnly ? s.sc === true : s.so) : false;
+      var isSTAM = s ? (confirmedOnly ? s.tc === true : s.st) : false;
       var isAY = s ? (s.sm >= minSemMonths && s.sm > 0) : false;
       var hasAny = isSO || isSTAM || isAY;
       if (isSO) { so++; globalSO[sid] = true; }
@@ -237,13 +244,14 @@ function render() {
   var minS = parseFloat(document.getElementById('minSemMonths').value);
   var minT = parseFloat(document.getElementById('minTotalMeetings').value);
   var rateMetric = document.getElementById('rateMetric').value;
+  var confirmedOnly = document.getElementById('confirmedOnly').checked;
 
   // Sync number inputs
   document.getElementById('minMeetingsNum').value = minM;
   document.getElementById('minSemMonthsNum').value = minS;
   document.getElementById('minTotalMeetingsNum').value = minT;
 
-  var result = compute(minM, minS, minT, rateMetric);
+  var result = compute(minM, minS, minT, rateMetric, confirmedOnly);
   var rows = result.rows;
   var totals = result.totals;
 
@@ -341,6 +349,9 @@ function render() {
 
 // Rate metric dropdown
 document.getElementById('rateMetric').addEventListener('change', function() { render(); });
+
+// Confirmed only toggle
+document.getElementById('confirmedOnly').addEventListener('change', function() { render(); });
 
 // Sorting
 document.querySelectorAll('#mainTable thead th').forEach(function(th) {
