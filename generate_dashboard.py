@@ -1,8 +1,10 @@
 """Generate the Souled Coach Outcomes dashboard HTML with embedded data."""
 import json
 import os
+import datetime
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TODAY = datetime.date.today().strftime("%Y-%m-%d")
 
 with open(os.path.join(BASE_DIR, 'dashboard_data.json')) as f:
     data_json = f.read()
@@ -151,7 +153,7 @@ html = """<!DOCTYPE html>
     </table>
   </div>
 
-  <p class="data-note">Data fetched from Salesforce on 2026-04-16. Click a coach name to expand student details. Use controls to adjust thresholds &mdash; table updates instantly.</p>
+  <p class="data-note">Data fetched from Salesforce on __TODAY__. Click a coach name to expand student details. Use controls to adjust thresholds &mdash; table updates instantly.</p>
 </div>
 
 <script>
@@ -385,6 +387,7 @@ render();
 </html>"""
 
 html = html.replace('__DATA_PLACEHOLDER__', data_json)
+html = html.replace('__TODAY__', TODAY)
 
 with open(os.path.join(BASE_DIR, 'dashboard.html'), 'w', encoding='utf-8') as f:
     f.write(html)
